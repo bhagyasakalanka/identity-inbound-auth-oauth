@@ -1052,6 +1052,9 @@ public class AccessTokenIssuer {
             // Token binding values are already set to the OAuthTokenReqMessageContext.
             return;
         }
+        if ("region_switch".equals(grantType)) {
+            return;
+        }
 
         tokReqMsgCtx.setTokenBinding(null);
 

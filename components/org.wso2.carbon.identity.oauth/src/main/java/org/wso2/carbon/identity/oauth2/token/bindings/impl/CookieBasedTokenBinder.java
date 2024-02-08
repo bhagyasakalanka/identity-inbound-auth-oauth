@@ -48,7 +48,8 @@ public class CookieBasedTokenBinder extends AbstractTokenBinder {
 
     private static final String COOKIE_NAME = "atbv";
 
-    private List<String> supportedGrantTypes = Collections.singletonList(AUTHORIZATION_CODE);
+    private List<String> supportedGrantTypes = Collections.unmodifiableList(Arrays.asList(AUTHORIZATION_CODE,
+            "region_switch"));
 
     @Override
     public String getBindingType() {
