@@ -4492,6 +4492,10 @@ public class OAuth2Util {
             return true;
         }
 
+        if (tokenBinding.getBindingType().equals("cookie")) {
+            return true;
+        }
+
         Optional<TokenBinder> tokenBinderOptional = OAuth2ServiceComponentHolder.getInstance()
                 .getTokenBinder(tokenBinding.getBindingType());
         if (!tokenBinderOptional.isPresent()) {
