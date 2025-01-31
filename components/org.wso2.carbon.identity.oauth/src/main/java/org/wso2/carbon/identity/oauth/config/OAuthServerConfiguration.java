@@ -210,6 +210,7 @@ public class OAuthServerConfiguration {
     private List<String> supportedTokenTypes = new ArrayList<>();
     private List<String> publicClientSupportedGrantTypes = new ArrayList<>();
     private List<String> publicClientNotSupportedGrantTypes = new ArrayList<>();
+    private List<String> nonMultiValueAttributeClaims = new ArrayList<>();
     private Map<String, OauthTokenIssuer> oauthTokenIssuerMap = new HashMap<>();
     private String[] supportedClaims = null;
     private boolean isFapiCiba = false;
@@ -567,6 +568,7 @@ public class OAuthServerConfiguration {
 
         // Read config for restricted query parameters in oauth requests
         parseRestrictedQueryParameters(oauthElem);
+        parseNonMultiValueAttributeClaims(oauthElem);
     }
 
     /**
@@ -676,6 +678,20 @@ public class OAuthServerConfiguration {
                 oauthElem.getFirstChildWithName(getQNameWithIdentityNS(ConfigElements.DROP_UNREGISTERED_SCOPES));
         if (dropUnregisteredScopesElement != null) {
             dropUnregisteredScopes = Boolean.parseBoolean(dropUnregisteredScopesElement.getText());
+        }
+    }
+
+    private void parseNonMultiValueAttributeClaims(OMElement oauthElem) {
+
+        OMElement nonMultiAttributeClaimsElement = oauthElem.getFirstChildWithName(
+                getQNameWithIdentityNS(ConfigElements.NON_MULTI_VALUE_ATTRIBUTE_CLAIMS));
+        if (nonMultiAttributeClaimsElement != null) {
+            Iterator claimIterator = nonMultiAttributeClaimsElement.getChildrenWithName(getQNameWithIdentityNS(
+                    ConfigElements.CLAIM));
+            while (claimIterator.hasNext()) {
+                OMElement claimElement = (OMElement) claimIterator.next();
+                nonMultiValueAttributeClaims.add(claimElement.getText());
+            }
         }
     }
 
@@ -1902,6 +1918,11 @@ public class OAuthServerConfiguration {
     public String getDeviceCodeKeySet() {
 
         return deviceCodeKeySet;
+    }
+
+    public List<String> getNonMultiValueAttributeClaims() {
+
+        return nonMultiValueAttributeClaims;
     }
 
     private void parseOAuthCallbackHandlers(OMElement callbackHandlersElem) {
@@ -4138,6 +4159,8 @@ public class OAuthServerConfiguration {
         public static final String SUPPORTED_ID_TOKEN_ENCRYPTION_METHODS = "SupportedIDTokenEncryptionMethods";
         public static final String SUPPORTED_ID_TOKEN_ENCRYPTION_METHOD = "SupportedIDTokenEncryptionMethod";
         public static final String SECURITY_CONTEXT_TTL = "AuthorizationContextTTL";
+        public static final String NON_MULTI_VALUE_ATTRIBUTE_CLAIMS = "NonMultiValueAttributeClaims";
+        public static final String CLAIM = "Claim";
         private static final String AUTH_CONTEXT_TOKEN_USE_MULTIVALUE_SEPARATOR = "UseMultiValueSeparator";
 
         public static final String ENABLE_ASSERTIONS = "EnableAssertions";

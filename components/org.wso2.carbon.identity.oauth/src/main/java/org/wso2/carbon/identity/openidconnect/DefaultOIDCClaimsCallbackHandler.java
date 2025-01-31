@@ -852,6 +852,10 @@ public class DefaultOIDCClaimsCallbackHandler implements CustomClaimsCallbackHan
         if (claimKey.equals(GROUPS)) {
             return true;
         }
+        // Check whether the claim is a non multi-value attribute against server configuration.
+        if (OAuthServerConfiguration.getInstance().getNonMultiValueAttributeClaims().contains(claimKey)) {
+            return false;
+        }
         return StringUtils.contains(claimValue, multiAttributeSeparator);
     }
 
