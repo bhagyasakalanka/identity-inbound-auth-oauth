@@ -675,6 +675,32 @@ public class AuthzUtil {
                 && !isJSON(authorizationResponseDTO.getRedirectUrl());
     }
 
+    /**
+     * Add sanitized request parameters to the diagnostic log.
+     *
+     * @param oAuthMessage         OAuth message.
+     * @param diagnosticLogBuilder Diagnostic log builder.
+     */
+    private static void addSanitizedInputParamsToDiagnosticLog(OAuthMessage oAuthMessage,
+                                                               DiagnosticLog.DiagnosticLogBuilder
+                                                                       diagnosticLogBuilder) {
+
+        if (oAuthMessage.getRequest() == null || MapUtils.isEmpty(oAuthMessage.getRequest().getParameterMap())) {
+            return;
+        }
+        oAuthMessage.getRequest().getParameterMap().forEach((key, value) -> {
+            if (ArrayUtils.isEmpty(value) || FrameworkConstants.PASSWORD.equalsIgnoreCase(key)) {
+                return;
+            }
+            if (FrameworkConstants.USERNAME.equalsIgnoreCase(key)) {
+                diagnosticLogBuilder.inputParam(key, Arrays.stream(value).map(LoggerUtils::getMaskedContent)
+                        .collect(Collectors.toList()));
+            } else {
+                diagnosticLogBuilder.inputParam(key, Arrays.asList(value));
+            }
+        });
+    }
+
     public static Response handleResponseFromConsent(OAuthMessage oAuthMessage) throws OAuthSystemException,
             URISyntaxException, ConsentHandlingFailedException, OAuthProblemException {
 
@@ -682,13 +708,7 @@ public class AuthzUtil {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     OAuthConstants.LogConstants.OAUTH_INBOUND_SERVICE,
                     OAuthConstants.LogConstants.ActionIDs.RECEIVE_CONSENT_RESPONSE);
-            if (oAuthMessage.getRequest() != null && MapUtils.isNotEmpty(oAuthMessage.getRequest().getParameterMap())) {
-                oAuthMessage.getRequest().getParameterMap().forEach((key, value) -> {
-                    if (ArrayUtils.isNotEmpty(value)) {
-                        diagnosticLogBuilder.inputParam(key, Arrays.asList(value));
-                    }
-                });
-            }
+            addSanitizedInputParamsToDiagnosticLog(oAuthMessage, diagnosticLogBuilder);
             diagnosticLogBuilder.resultMessage("Successfully received consent response.")
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.INTERNAL_SYSTEM);
@@ -1152,13 +1172,7 @@ public class AuthzUtil {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     OAuthConstants.LogConstants.OAUTH_INBOUND_SERVICE,
                     OAuthConstants.LogConstants.ActionIDs.RECEIVE_AUTHENTICATION_RESPONSE);
-            if (oAuthMessage.getRequest() != null && MapUtils.isNotEmpty(oAuthMessage.getRequest().getParameterMap())) {
-                oAuthMessage.getRequest().getParameterMap().forEach((key, value) -> {
-                    if (ArrayUtils.isNotEmpty(value)) {
-                        diagnosticLogBuilder.inputParam(key, Arrays.asList(value));
-                    }
-                });
-            }
+            addSanitizedInputParamsToDiagnosticLog(oAuthMessage, diagnosticLogBuilder);
             diagnosticLogBuilder.resultMessage("Received authentication response from Framework.")
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.INTERNAL_SYSTEM);
